@@ -15,8 +15,10 @@
 #include "uart.h"
 #include "PPS.h"
 #include "libpic30.h"
+//#include "Adafruit_GPS.h"
 
 /* Prototypes */
+void gpsSetup(void);
 void usbSetup(void);
 void blink(unsigned int);
 
@@ -39,16 +41,13 @@ unsigned char Data[256];
 int main(void)
 {	
     /* Bring all Outputs Low */
+    LATB = 0x0000;
     LATD = 0x0000;
+    LATF = 0x0000;
 
-    /* Configure Port Direction */
-    TRISDbits.TRISD11 = 0;  //  Turn RD11 into output for UART TX
-    TRISDbits.TRISD10 = 1;  //  Turn RD10 into input for UART RX
-    TRISDbits.TRISD9 = 0;   //  Turn RD9 into output for UART RTS#
-    TRISDbits.TRISD8 = 0;   //  Turn RD8 into output for LED
-    TRISDbits.TRISD6 = 0;   //  Turn RD6 into output for LED
-    TRISDbits.TRISD0 = 1;   //  Turn RD0 into input for UART CTS#
-
+    /* Disable analog I/O on PORT B */
+    ANSB = 0x0000;
+    
     /* Setup the USB UART */
     usbSetup();
     
@@ -66,10 +65,48 @@ int main(void)
     
 }
 
+void gpsSetup(void)
+{
+    /* Configure Port Direction */
+    TRISBbits.TRISB8 = 0;   //  Turn RB8 into output for GPS EN
+    TRISBbits.TRISB9 = 1;   //  Turn RB9 into input for GPS FIX
+    TRISBbits.TRISB14 = 1;  //  Turn RB14 into input for GPS RX
+    TRISBbits.TRISB15 = 0;  //  Turn RB15 into output for GPS TX
+    TRISFbits.TRISF4 = 1;   //  Turn RF4 into input for GPS PPS
+
+    /* Configure PPS pins for GPS */
+    iPPSInput(IN_FN_PPS_U2RX,IN_PIN_PPS_RP14);      // Assign U2RX to pin RP14
+    iPPSOutput(OUT_PIN_PPS_RP29,OUT_FN_PPS_U2TX);   // Assign U2TX to pin RP29
+
+    /* Close UART in case it's already open */
+    CloseUART2();
+
+    /*Enable UART Interface */
+
+    ConfigIntUART2(UART_RX_INT_EN | UART_RX_INT_PR7 | UART_TX_INT_EN | UART_TX_INT_PR7);
+    // Receive interrupt enabled
+    // Priority RX interrupt 7
+    // Transmit interrupt enabled
+    // Priority TX interrupt 7
+
+    OpenUART2(UART_EN, UART_TX_ENABLE, 25);
+    // Module enable
+    // Transmit enable
+    // 9600 baud rate (@ 8 MHz internal clock)
+}
+
 /* Set up the UART for the FTDI chip */
 void usbSetup(void)
 {
-    /* Configure PPS pins for UART */
+    /* Configure Port Direction */
+    TRISDbits.TRISD11 = 0;  //  Turn RD11 into output for USB TX
+    TRISDbits.TRISD10 = 1;  //  Turn RD10 into input for USB RX
+    TRISDbits.TRISD9 = 0;   //  Turn RD9 into output for USB RTS#
+    TRISDbits.TRISD8 = 0;   //  Turn RD8 into output for LED
+    TRISDbits.TRISD6 = 0;   //  Turn RD6 into output for LED
+    TRISDbits.TRISD0 = 1;   //  Turn RD0 into input for USB CTS#
+    
+    /* Configure PPS pins for USB */
     iPPSInput(IN_FN_PPS_U3RX,IN_PIN_PPS_RP3);       // Assign U3RX to pin RP3
     iPPSInput(IN_FN_PPS_U3CTS,IN_PIN_PPS_RP11);     // Assign U3CTS# to pin RP11
     iPPSOutput(OUT_PIN_PPS_RP12,OUT_FN_PPS_U3TX);   // Assign U3TX to pin RP12

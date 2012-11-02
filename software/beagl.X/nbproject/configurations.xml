@@ -120,7 +120,7 @@
         <property key="enable-handles" value="true"/>
         <property key="enable-pack-data" value="true"/>
         <property key="extra-lib-directories"
-                  value="/opt/microchip/xc16/v1.10/support/PIC24F/h;/opt/microchip/xc16/v1.10/support/generic/h;/opt/microchip/xc16/v1.10/support/peripheral_24F"/>
+                  value="/opt/microchip/xc16/v1.10/support/PIC24F/h;/opt/microchip/xc16/v1.10/support/generic/h;/opt/microchip/xc16/v1.10/support/peripheral_24F;/home/matt/Dropbox/Documents/Projects/Beagl/specs/GlobalTop/adafruit-Adafruit-GPS-Library-319531f"/>
         <property key="general-code-protect" value="no_code_protect"/>
         <property key="general-write-protect" value="no_write_protect"/>
         <property key="generate-cross-reference-file" value="false"/>
