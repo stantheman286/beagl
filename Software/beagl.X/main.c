@@ -247,15 +247,6 @@ void floatToUART(float f)
     while(BusyUART3());
     WriteUART3((unsigned int)((n_dec % 10) + 48));
     
-  //  while(BusyUART3());
-   // WriteUART3((unsigned int)(((n * 10) % 100) % 10));
-   // while(BusyUART3());
-   // WriteUART3((unsigned int)((((n * 100) % 1000) % 100) % 10));
-   // while(BusyUART3());
-  //  WriteUART3((unsigned int)(((((n * 1000) % 10000) % 1000) % 100) % 10));
-   // while(BusyUART3());
-   // WriteUART3((unsigned int)((((((n * 10000) % 100000) % 10000) % 1000) % 100) % 10));
-    
 }
 
 /* UART2 RX ISR */
