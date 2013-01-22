@@ -272,15 +272,16 @@ void common_init(void) {
 /* Send command to GPS via UART */
 void sendCommand(char *str) {
 
-    unsigned int i=0;
+//    unsigned int i=0;
 
-    /* Check of end of string */
-    while(str[i] != '\0') {
-        /* Wait until the UART is not busy*/
-        while(BusyUART2());
-        /* Transmit the data */
-        WriteUART2((unsigned int)str[i++]);
-    }
+    while(BusyUART2());
+    putsUART2((unsigned int*)str);
+
+ //   while(str[i] != '\0') {
+ //       while(BusyUART2());
+ //       WriteUART2((unsigned int)str[i++]);
+ //   }
+    
 }
 
 boolean newNMEAreceived(void) {

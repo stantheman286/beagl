@@ -28,6 +28,10 @@
 void gpsSetup(void);
 void usbSetup(void);
 void blink(unsigned int);
+void uint8ToUART(uint8_t);
+void uint16ToUART(uint16_t);
+void booleanToUART(boolean);
+void floatToUART(float);
 
 /* Configuration Settings */
 
@@ -59,6 +63,10 @@ int main(void)
     usbSetup();
     gpsSetup();
     
+    /* Clear and enable GPS interrupt */
+    U2RX_Clear_Intr_Status_Bit;
+    EnableIntU2RX;
+
     /* Set up to echo GPS data */
     sendCommand(PMTK_SET_BAUD_9600);
     __delay_ms(100);
@@ -66,15 +74,11 @@ int main(void)
     __delay_ms(100);
     sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
     __delay_ms(100);
-
-    /* Clear and enable GPS interrupt */
-    U2RX_Clear_Intr_Status_Bit;
-    EnableIntU2RX;
-
+    
     /* Loop Forever */
     while(1)
     {
-        blink(LED_BLU_P49);
+        blink(LED_GRN_P42);
         __delay_ms(500);
     }
 
@@ -114,7 +118,7 @@ void gpsSetup(void)
     OpenUART2(UART_EN, UART_TX_ENABLE, 25);
     // Module enable
     // Transmit enable
-    // 9600 baud rate (@ 8 MHz internal clock)
+    // 9600 baud rate (@ 4 MHz internal clock)
 
     /* Initalize the Adafruit GPS libraries */
     common_init();
@@ -166,9 +170,98 @@ void blink(unsigned int LED)
    PORTD &= ~LED;
 }
 
+/* Sends uint8 out on UART */
+void uint8ToUART(uint8_t n)
+{
+    /* Value is 0 - 59 (seconds, minutes) or 0 - 23 (hours), calculate places and convert to ASCII */
+    
+    /* Calculate the tens and ones place */
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n / 10) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n % 10) + 48));
+
+}
+
+/* Sends uint16 out on UART */
+void uint16ToUART(uint16_t n)
+{
+    /* Value is 0 - 1000, calculate places and convert to ASCII */
+
+    /* Calculate the thousands, hundreds, tens and ones place */
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n / 1000) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n % 1000) / 100) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n % 100) / 10) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n % 10) + 48));
+
+}
+
+/* Sends boolean out on UART */
+void booleanToUART(boolean b)
+{
+
+    /* Output true or false based on value */
+    while(BusyUART3());
+    if (b == true)
+        putsUART3((unsigned int*)"true");
+    else
+        putsUART3((unsigned int*)"false");
+
+}
+
+/* Sends float out on UART */
+void floatToUART(float f)
+{
+    unsigned int n_whole, n_dec;
+
+    /* Value always has 10 digits as follows: XXXXX.XXXX */
+    n_whole = (unsigned int)f;
+    n_dec = (unsigned int)((f - n_whole)*10000);
+    
+    /* Calculate the ten thounsands, thousands, hundreds, tens and ones place */
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n_whole / 10000) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n_whole % 10000) / 1000) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n_whole % 1000) / 100) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n_whole % 100) / 10) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n_whole % 10) + 48));
+
+    while(BusyUART3());
+    WriteUART3('.');
+
+    /* Calculate the tenths, hundredths, thousandths, ten thousandths place */
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n_dec / 1000) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n_dec % 1000) / 100) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)(((n_dec % 100) / 10) + 48));
+    while(BusyUART3());
+    WriteUART3((unsigned int)((n_dec % 10) + 48));
+    
+  //  while(BusyUART3());
+   // WriteUART3((unsigned int)(((n * 10) % 100) % 10));
+   // while(BusyUART3());
+   // WriteUART3((unsigned int)((((n * 100) % 1000) % 100) % 10));
+   // while(BusyUART3());
+  //  WriteUART3((unsigned int)(((((n * 1000) % 10000) % 1000) % 100) % 10));
+   // while(BusyUART3());
+   // WriteUART3((unsigned int)((((((n * 10000) % 100000) % 10000) % 1000) % 100) % 10));
+    
+}
+
 /* UART2 RX ISR */
 void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
 {
+    float test;
     char c;
 
     /* Clear the interrupt status of UART3 RX */
@@ -194,6 +287,82 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
         while(DataRdyUART2())
             ReadUART2();
 
+    }
+
+    /* Received a valid NMEA sentence */
+    if (newNMEAreceived()) {
+
+        /* If parse successful (checksum passed), print data */
+        if (parse(lastNMEA())) {
+
+            while(BusyUART3());
+            putsUART3((unsigned int*)"\n---------------------------");
+            while(BusyUART3());
+            putsUART3((unsigned int*)"---------------------------");
+            while(BusyUART3());
+            putsUART3((unsigned int*)"---------------------------");
+
+            /* Time */
+            while(BusyUART3());
+            putsUART3((unsigned int*)"\nTime: ");
+            uint8ToUART(hour);
+            while(BusyUART3());
+            WriteUART3(':');
+            uint8ToUART(minute);
+            while(BusyUART3());
+            WriteUART3(':');
+            uint8ToUART(seconds);
+            while(BusyUART3());
+            WriteUART3('.');
+            uint16ToUART(milliseconds);
+
+            /* Date */
+            while(BusyUART3());
+            putsUART3((unsigned int*)" Date: ");
+            uint8ToUART(month);
+            while(BusyUART3());
+            WriteUART3('/');
+            uint8ToUART(day);
+            while(BusyUART3());
+            putsUART3((unsigned int*)"/20");    // Make year 4 digits
+            uint8ToUART(year);
+
+            /* Location Information */
+            while(BusyUART3());
+            putsUART3((unsigned int*)" Fix: ");
+            booleanToUART(fix);
+            while(BusyUART3());
+            putsUART3((unsigned int*)" Quality: ");
+            uint8ToUART(fixquality);
+
+            /* Have a fix, print out useful information */
+            if(fix) {
+                while(BusyUART3());
+                putsUART3((unsigned int*)"\nLocation: ");
+                floatToUART(latitude);
+                while(BusyUART3());
+                WriteUART3(lat);    // Straight chatacter, no extra conversion
+                while(BusyUART3());
+                putsUART3((unsigned int*)", ");
+                floatToUART(longitude);
+                while(BusyUART3());
+                WriteUART3(lon);    // Straight chatacter, no extra conversion
+//FIX                test = 12345.9876;
+//FIX                floatToUART(test);
+                while(BusyUART3());
+                putsUART3((unsigned int*)" Speed (knots): ");
+                floatToUART(speed);
+                while(BusyUART3());
+                putsUART3((unsigned int*)" Angle: ");
+                floatToUART(angle);
+                while(BusyUART3());
+                putsUART3((unsigned int*)" Altitude: ");
+                floatToUART(altitude);
+                while(BusyUART3());
+                putsUART3((unsigned int*)" Satellites: ");
+                uint8ToUART(satellites);
+            }
+        }
     }
     
 }
