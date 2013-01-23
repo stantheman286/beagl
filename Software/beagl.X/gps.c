@@ -61,7 +61,7 @@ boolean parse(char *nmea) {
     char *p = nmea;
     // get time
     p = strchr(p, ',')+1;
-    float timef = atof(p);
+    double timef = atof(p);
     uint32_t time = timef;
     hour = time / 10000;
     minute = (time % 10000) / 100;
@@ -111,7 +111,7 @@ boolean parse(char *nmea) {
 
     // get time
     p = strchr(p, ',')+1;
-    float timef = atof(p);
+    double timef = atof(p);
     uint32_t time = timef;
     hour = time / 10000;
     minute = (time % 10000) / 100;
@@ -255,7 +255,7 @@ void common_init(void) {
   fix = false; // boolean
   milliseconds = 0; // uint16_t
   latitude = longitude = geoidheight = altitude =
-    speed = angle = magvariation = HDOP = 0.0; // float
+    speed = angle = magvariation = HDOP = 0.0; // double
 }
 
 //void begin(uint16_t baud)

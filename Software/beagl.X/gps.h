@@ -110,8 +110,8 @@ void interruptReads(boolean r);
 
 extern uint8_t hour, minute, seconds, year, month, day;
 extern uint16_t milliseconds;
-extern float latitude, longitude, geoidheight, altitude;
-extern float speed, angle, magvariation, HDOP;
+extern double latitude, longitude, geoidheight, altitude;
+extern double speed, angle, magvariation, HDOP;
 extern char lat, lon, mag;
 extern boolean fix;
 extern uint8_t fixquality, satellites;

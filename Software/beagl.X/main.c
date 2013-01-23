@@ -31,7 +31,7 @@ void blink(unsigned int);
 void uint8ToUART(uint8_t);
 void uint16ToUART(uint16_t);
 void booleanToUART(boolean);
-void floatToUART(float);
+void doubleToUART(double);
 
 /* Configuration Settings */
 
@@ -213,14 +213,14 @@ void booleanToUART(boolean b)
 
 }
 
-/* Sends float out on UART */
-void floatToUART(float f)
+/* Sends double out on UART */
+void doubleToUART(double d)
 {
     unsigned int n_whole, n_dec;
 
     /* Value always has 10 digits as follows: XXXXX.XXXX */
-    n_whole = (unsigned int)f;
-    n_dec = (unsigned int)((f - n_whole)*10000);
+    n_whole = (unsigned int)d;
+    n_dec = (unsigned int)((d - n_whole)*10000);
     
     /* Calculate the ten thounsands, thousands, hundreds, tens and ones place */
     while(BusyUART3());
@@ -252,7 +252,6 @@ void floatToUART(float f)
 /* UART2 RX ISR */
 void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
 {
-    float test;
     char c;
 
     /* Clear the interrupt status of UART3 RX */
@@ -271,8 +270,8 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
     if (c) {
 
         /* Write character out to USB when ready */
-        while(BusyUART3());
-        WriteUART3((unsigned int)c);
+        //while(BusyUART3());
+        //WriteUART3((unsigned int)c);
 
         /* Clear out any garbage characters */
         while(DataRdyUART2())
@@ -330,25 +329,23 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
             if(fix) {
                 while(BusyUART3());
                 putsUART3((unsigned int*)"\nLocation: ");
-                floatToUART(latitude);
+                doubleToUART(latitude);
                 while(BusyUART3());
                 WriteUART3(lat);    // Straight chatacter, no extra conversion
                 while(BusyUART3());
                 putsUART3((unsigned int*)", ");
-                floatToUART(longitude);
+                doubleToUART(longitude);
                 while(BusyUART3());
                 WriteUART3(lon);    // Straight chatacter, no extra conversion
-//FIX                test = 12345.9876;
-//FIX                floatToUART(test);
                 while(BusyUART3());
                 putsUART3((unsigned int*)" Speed (knots): ");
-                floatToUART(speed);
+                doubleToUART(speed);
                 while(BusyUART3());
                 putsUART3((unsigned int*)" Angle: ");
-                floatToUART(angle);
+                doubleToUART(angle);
                 while(BusyUART3());
                 putsUART3((unsigned int*)" Altitude: ");
-                floatToUART(altitude);
+                doubleToUART(altitude);
                 while(BusyUART3());
                 putsUART3((unsigned int*)" Satellites: ");
                 uint8ToUART(satellites);
