@@ -1,17 +1,3 @@
-/* 
- * File:   gps.h
- * Author: matt
- *
- * Created on November 8, 2012, 11:21 PM
- */
-
-#ifndef GPS_H
-#define	GPS_H
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 /***********************************
 This is the Adafruit GPS library - the ultimate GPS library
 for the ultimate GPS module!
@@ -30,6 +16,9 @@ Written by Limor Fried/Ladyada  for Adafruit Industries.
 BSD license, check license.txt for more information
 All text above must be included in any redistribution
 ****************************************/
+
+#ifndef _GPS_H
+#define _GPS_H
 
 /* Typedefs and Definitions to make this compatible with C */
 typedef unsigned char uint8_t;
@@ -62,7 +51,8 @@ typedef int boolean;
 // such as the awesome http://www.hhhh.org/wiml/proj/nmeaxor.html
 
 #define PMTK_LOCUS_STARTLOG  "$PMTK185,0*22\r\n"
-#define PMTK_LOCUS_LOGSTARTED "$PMTK001,185,3*3C\r\n"
+// Status message won't have <CR><LF>
+#define PMTK_LOCUS_LOGSTARTED "$PMTK001,185,3*3C"
 #define PMTK_LOCUS_QUERY_STATUS "$PMTK183*38\r\n"
 #define PMTK_LOCUS_ERASE_FLASH "$PMTK184,1*22\r\n"
 #define LOCUS_OVERLAP 0
@@ -74,69 +64,22 @@ typedef int boolean;
 // how long to wait when we're looking for a response
 #define MAXWAITSENTENCE 5
 
-//#if ARDUINO >= 100
-// #include "Arduino.h"
-// #include "SoftwareSerial.h"
-//#else
-// #include "WProgram.h"
-// #include "NewSoftSerial.h"
-//#endif
-
-
-//class Adafruit_GPS {
-// public:
-
 void begin(uint16_t baud);
-
-//#if ARDUINO >= 100
-//  Adafruit_GPS(SoftwareSerial *ser); // Constructor when using SoftwareSerial
-//#else
-//  Adafruit_GPS(NewSoftSerial  *ser); // Constructor when using NewSoftSerial
-//#endif
-//  Adafruit_GPS(HardwareSerial *ser); // Constructor when using HardwareSerial
-
 char *lastNMEA(void);
 boolean newNMEAreceived();
 void common_init(void);
 void sendCommand(char *);
 void pause(boolean b);
-
 boolean parseNMEA(char *response);
 uint8_t parseHex(char c);
-
 char read(void);
 boolean parse(char *);
 void interruptReads(boolean r);
-
-extern uint8_t hour, minute, seconds, year, month, day;
-extern uint16_t milliseconds;
-extern double latitude, longitude, geoidheight, altitude;
-extern double speed, angle, magvariation, HDOP;
-extern char lat, lon, mag;
-extern boolean fix;
-extern uint8_t fixquality, satellites;
-
 boolean waitForSentence(char *wait, uint8_t max);
 boolean LOCUS_StartLogger(void);
 boolean LOCUS_ReadStatus(void);
-
-extern uint16_t LOCUS_serial, LOCUS_records;
-extern uint8_t LOCUS_type, LOCUS_mode, LOCUS_config, LOCUS_interval, LOCUS_distance, LOCUS_speed, LOCUS_status, LOCUS_percent;
-
-extern boolean paused;
-
 uint8_t parseResponse(char *response);
+void startLOCUS(void);
+void displayGPSInfo(void);
 
-//#if ARDUINO >= 100
-//  SoftwareSerial *gpsSwSerial;
-//#else
-//  NewSoftSerial  *gpsSwSerial;
-//#endif
-//  HardwareSerial *gpsHwSerial;
-
-#ifdef	__cplusplus
-}
 #endif
-
-#endif	/* GPS_H */
-

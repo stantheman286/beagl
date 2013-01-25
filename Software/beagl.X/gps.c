@@ -10,13 +10,22 @@ BSD license, check license.txt for more information
 All text above must be included in any redistribution
 ****************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <ctype.h>
-#include "uart.h"
-#include "Adafruit_GPS.h"
+// Libraries
+#include "beagl.h"
+
+// Global variables
+uint8_t hour, minute, seconds, year, month, day;
+uint16_t milliseconds;
+double latitude, longitude, geoidheight, altitude;
+double speed, angle, magvariation, HDOP;
+char lat, lon, mag;
+boolean fix;
+uint8_t fixquality, satellites;
+
+uint16_t LOCUS_serial, LOCUS_records;
+uint8_t LOCUS_type, LOCUS_mode, LOCUS_config, LOCUS_interval, LOCUS_distance, LOCUS_speed, LOCUS_status, LOCUS_percent;
+
+boolean paused;
 
 // how long are max NMEA lines to parse?
 #define MAXLINELENGTH 120
@@ -174,14 +183,6 @@ char read(void) {
 
   if (paused) return c;
 
-//  if(gpsSwSerial) {
-//    if(!gpsSwSerial->available()) return c;
-//    c = gpsSwSerial->read();
-//  } else {
-//    if(!gpsHwSerial->available()) return c;
-//    c = gpsHwSerial->read();
-//  }
-
   /* Grab data from GPS if available */
   if (!DataRdyUART2()) {
     return c;
@@ -205,9 +206,6 @@ char read(void) {
       lastline = line2;
     }
 
-    //Serial.println("----");
-    //Serial.println((char *)lastline);
-    //Serial.println("----");
     lineidx = 0;
     recvdflag = true;
   }
@@ -220,29 +218,8 @@ char read(void) {
 
 }
 
-/* Initialization handled by my code, call common_init() from there */
-
-// Constructor when using SoftwareSerial or NewSoftSerial
-//#if ARDUINO >= 100
-//Adafruit_GPS(SoftwareSerial *ser)
-//#else
-//Adafruit_GPS(NewSoftSerial *ser)
-//#endif
-//{
-//  common_init();     // Set everything to common state, then...
-//  gpsSwSerial = ser; // ...override gpsSwSerial with value passed.
-//}
-
-// Constructor when using HardwareSerial
-//Adafruit_GPS(HardwareSerial *ser) {
-//  common_init();  // Set everything to common state, then...
-//  gpsHwSerial = ser; // ...override gpsHwSerial with value passed.
-//}
-
 // Initialization code used by all constructor types
 void common_init(void) {
-//  gpsSwSerial = NULL; // Set both to NULL, then override correct
-//  gpsHwSerial = NULL; // port pointer in corresponding constructor
   recvdflag   = false;
   paused      = false;
   lineidx     = 0;
@@ -258,30 +235,10 @@ void common_init(void) {
     speed = angle = magvariation = HDOP = 0.0; // double
 }
 
-//void begin(uint16_t baud)
-//{
-//  if(gpsSwSerial) gpsSwSerial->begin(baud);
-//  else            gpsHwSerial->begin(baud);
-//}
-//
-//void sendCommand(char *str) {
-//  if(gpsSwSerial) gpsSwSerial->println(str);
-//  else            gpsHwSerial->println(str);
-//}
-
 /* Send command to GPS via UART */
 void sendCommand(char *str) {
-
-//    unsigned int i=0;
-
     while(BusyUART2());
     putsUART2((unsigned int*)str);
-
- //   while(str[i] != '\0') {
- //       while(BusyUART2());
- //       WriteUART2((unsigned int)str[i++]);
- //   }
-    
 }
 
 boolean newNMEAreceived(void) {
@@ -379,4 +336,73 @@ boolean LOCUS_ReadStatus(void) {
   LOCUS_percent = parsed[9];
 
   return true;
+}
+
+// Start the GPS logger function
+void startLOCUS(void)
+{
+    DELAY_MS(500);
+    strToUSB("\nSTARTING LOGGING....");
+    if (LOCUS_StartLogger())
+        strToUSB(" STARTED!");
+    else
+        strToUSB(" no response :(");
+    DELAY_MS(1000);
+}
+
+// Displays GPS information to USB
+void displayGPSInfo(void)
+{
+    // Received a valid NMEA sentence
+    if (newNMEAreceived()) {
+
+        // If parse successful (checksum passed), print data
+        if (parse(lastNMEA())) {
+
+            // Line Break
+            strToUSB("\n---------------------------------------------------------------------------------");
+
+            // Time
+            strToUSB("\nTime: ");
+            uint8ToUSB(hour);
+            strToUSB(":");
+            uint8ToUSB(minute);
+            strToUSB(":");
+            uint8ToUSB(seconds);
+            strToUSB(".");
+            uint16ToUSB(milliseconds);
+
+            // Date
+            strToUSB(" Date: ");
+            uint8ToUSB(month);
+            strToUSB("/");
+            uint8ToUSB(day);
+            strToUSB("/20");   // Make year 4 digits
+            uint8ToUSB(year);
+
+            /* Location Information */
+            strToUSB(" Fix: ");
+            booleanToUSB(fix);
+            strToUSB(" Quality: ");
+            uint8ToUSB(fixquality);
+
+            // Have a fix, print out useful information
+            if(fix) {
+                strToUSB("\nLocation: ");
+                doubleToUSB(latitude);
+                WriteUART3(lat);                // Straight chatacter, no extra conversion
+                strToUSB(", ");
+                doubleToUSB(longitude);
+                WriteUART3(lon);                // Straight chatacter, no extra conversion
+                strToUSB(" Speed (knots): ");
+                doubleToUSB(speed);
+                strToUSB(" Angle: ");
+                doubleToUSB(angle);
+                strToUSB(" Altitude: ");
+                doubleToUSB(altitude);
+                strToUSB(" Satellites: ");
+                uint8ToUSB(satellites);
+            }
+        }
+    }
 }

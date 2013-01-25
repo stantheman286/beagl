@@ -1,3 +1,5 @@
 build/default/production/gps.o:  \
 gps.c  \
-Adafruit_GPS.h 
+beagl.h  \
+gps.h  \
+usb.h 

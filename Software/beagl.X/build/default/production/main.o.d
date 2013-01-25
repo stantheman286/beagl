@@ -1,3 +1,5 @@
 build/default/production/main.o:  \
 main.c  \
-gps.h 
+beagl.h  \
+gps.h  \
+usb.h 
