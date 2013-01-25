@@ -350,6 +350,40 @@ void startLOCUS(void)
     DELAY_MS(1000);
 }
 
+// Displays GPS logger information to USB
+void displayLOCUSInfo(void)
+{
+    if (LOCUS_ReadStatus()) {
+        strToUSB("\n\nLog #");
+        uint16ToUSB(LOCUS_serial, 5, false);
+        if (LOCUS_type == LOCUS_OVERLAP) strToUSB(", Overlap, ");
+        else if (LOCUS_type == LOCUS_FULLSTOP) strToUSB(", Full Stop, Logging");
+
+        if (LOCUS_mode & 0x1) strToUSB(" AlwaysLocate");
+        if (LOCUS_mode & 0x2) strToUSB(" FixOnly");
+        if (LOCUS_mode & 0x4) strToUSB(" Normal");
+        if (LOCUS_mode & 0x8) strToUSB(" Interval");
+        if (LOCUS_mode & 0x10) strToUSB(" Distance");
+        if (LOCUS_mode & 0x20) strToUSB(" Speed");
+
+        strToUSB(", Content ");
+        uint8ToUSB(LOCUS_config, 3, false);
+        strToUSB(", Interval ");
+        uint8ToUSB(LOCUS_interval, 3, false);
+        strToUSB(" sec, Distance ");
+        uint8ToUSB(LOCUS_distance, 3, false);
+        strToUSB(" m, Speed ");
+        uint8ToUSB(LOCUS_speed, 3, false);
+        strToUSB(" m/s, Status ");
+        if (LOCUS_status) strToUSB("LOGGING, ");
+        else strToUSB("OFF, ");
+        uint8ToUSB(LOCUS_records, 3, false);
+        strToUSB(" Records, ");
+        uint16ToUSB(LOCUS_percent, 5, false);
+        strToUSB("% Used ");
+    }
+}
+
 // Displays GPS information to USB
 void displayGPSInfo(void)
 {
@@ -364,27 +398,27 @@ void displayGPSInfo(void)
 
             // Time
             strToUSB("\nTime: ");
-            uint8ToUSB(hour);
+            uint8ToUSB(hour, 2, true);
             strToUSB(":");
-            uint8ToUSB(minute);
+            uint8ToUSB(minute, 2, true);
             strToUSB(":");
-            uint8ToUSB(seconds);
+            uint8ToUSB(seconds, 2, true);
             strToUSB(".");
-            uint16ToUSB(milliseconds);
+            uint16ToUSB(milliseconds, 4, true); // Also max of 1000 (1s, next variable)
 
             // Date
             strToUSB(" Date: ");
-            uint8ToUSB(month);
+            uint8ToUSB(month, 2, true);
             strToUSB("/");
-            uint8ToUSB(day);
+            uint8ToUSB(day, 2, true);
             strToUSB("/20");   // Make year 4 digits
-            uint8ToUSB(year);
+            uint8ToUSB(year, 2, true);
 
             /* Location Information */
             strToUSB(" Fix: ");
             booleanToUSB(fix);
             strToUSB(" Quality: ");
-            uint8ToUSB(fixquality);
+            uint8ToUSB(fixquality, 2, false);   // Not using GPGGA, ignore
 
             // Have a fix, print out useful information
             if(fix) {
@@ -399,9 +433,9 @@ void displayGPSInfo(void)
                 strToUSB(" Angle: ");
                 doubleToUSB(angle);
                 strToUSB(" Altitude: ");
-                doubleToUSB(altitude);
+                doubleToUSB(altitude);              // Not using GPGGA, ignore
                 strToUSB(" Satellites: ");
-                uint8ToUSB(satellites);
+                uint8ToUSB(satellites, 2, false);   // Not using GPGGA, ignore
             }
         }
     }

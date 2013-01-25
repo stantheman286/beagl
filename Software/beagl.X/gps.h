@@ -80,6 +80,7 @@ boolean LOCUS_StartLogger(void);
 boolean LOCUS_ReadStatus(void);
 uint8_t parseResponse(char *response);
 void startLOCUS(void);
+void displayLOCUSInfo(void);
 void displayGPSInfo(void);
 
 #endif

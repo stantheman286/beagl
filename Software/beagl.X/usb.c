@@ -3,32 +3,66 @@
 #include "beagl.h"
 
 // Sends uint8 out on USB
-void uint8ToUSB(uint8_t n)
+void uint8ToUSB(uint8_t n, int digits, boolean print_zeroes)
 {
-    // Value is 0 - 59 (seconds, minutes) or 0 - 23 (hours), calculate places and convert to ASCII
-
-    // Calculate the tens and ones place
+    unsigned int temp;
+    
+    // Depending on digits, calculate hundreds, tens and ones place
+    if (digits >= 3) {  // For 16-bit value, max number of digits is 3
+        temp = (((n % 1000) / 100) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
+    if (digits >= 2) {
+        temp = (((n % 100) / 10) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
     while(BusyUART3());
-    WriteUART3((unsigned int)((n / 10) + 48));
-    while(BusyUART3());
-    WriteUART3((unsigned int)((n % 10) + 48));
+    WriteUART3((unsigned int)((n % 10) + 48));  // Always print, even if a zero
 
 }
 
 // Sends uint16 out on USB
-void uint16ToUSB(uint16_t n)
+void uint16ToUSB(uint16_t n, int digits, boolean print_zeroes)
 {
-    // Value is 0 - 1000, calculate places and convert to ASCII
-
-    // Calculate the thousands, hundreds, tens and ones place
+    unsigned int temp;
+    
+    // Depending on digits, calculate ten thousands, thousands, hundreds, tens and ones place
+    if (digits >= 5) {  // For 16-bit value, max number of digits is 5
+        temp = ((n / 10000) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
+    if (digits >= 4) {
+        temp = (((n % 10000) / 1000) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
+    if (digits >= 3) {
+        temp = (((n % 1000) / 100) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
+    if (digits >= 2) {
+        temp = (((n % 100) / 10) + 48);
+        if (temp > 48 || print_zeroes) {
+            while(BusyUART3());
+            WriteUART3(temp);
+        }
+    }
     while(BusyUART3());
-    WriteUART3((unsigned int)((n / 1000) + 48));
-    while(BusyUART3());
-    WriteUART3((unsigned int)(((n % 1000) / 100) + 48));
-    while(BusyUART3());
-    WriteUART3((unsigned int)(((n % 100) / 10) + 48));
-    while(BusyUART3());
-    WriteUART3((unsigned int)((n % 10) + 48));
+    WriteUART3((unsigned int)((n % 10) + 48));  // Always print, even if a zero
 
 }
 

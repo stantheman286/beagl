@@ -66,87 +66,28 @@ int main(void)
     // Set up to echo GPS data
     sendCommand(PMTK_SET_BAUD_9600);
     DELAY_MS(100);
-    sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+//    sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+    sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
     DELAY_MS(100);
-    sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+//    sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
     DELAY_MS(100);
 
     // Start GPS data logger
 //    startLOCUS();
 
+    DELAY_MS(1000);
+    sendCommand("$PMTK622,1*29\r\n");
+
+    while(1);
     // Loop Forever
     while(1)
     {
         blink(LED_GRN_P42);
         DELAY_MS(1000);
-/*
-        if (LOCUS_ReadStatus()) {
-            while(BusyUART3());
-            putsUART3((unsigned int*)"\n\nLog #");
-       //FIX  //   Serial.print(GPS.LOCUS_serial, DEC);
-            if (LOCUS_type == LOCUS_OVERLAP) {
-              while(BusyUART3());
-              putsUART3((unsigned int*)", Overlap, ");
-            }
-            else if (LOCUS_type == LOCUS_FULLSTOP) {
-              while(BusyUART3());
-              putsUART3((unsigned int*)", Full Stop, Logging");
-            }
 
-            if (LOCUS_mode & 0x1) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" AlwaysLocate");
-            }
-            if (LOCUS_mode & 0x2) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" FixOnly");
-            }
-            if (LOCUS_mode & 0x4) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" Normal");
-            }
-            if (LOCUS_mode & 0x8) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" Interval");
-            }
-            if (LOCUS_mode & 0x10) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" Distance");
-            }
-            if (LOCUS_mode & 0x20) {
-                while(BusyUART3());
-                putsUART3((unsigned int*)" Speed");
-            }
-
-            while(BusyUART3());
-            putsUART3((unsigned int*)", Content ");
-            uint8ToUSB(LOCUS_config);
-            while(BusyUART3());
-            putsUART3((unsigned int*)", Interval ");
-            uint8ToUSB(LOCUS_interval);
-            while(BusyUART3());
-            putsUART3((unsigned int*)" sec, Distance ");
-            uint8ToUSB(LOCUS_distance);
-            while(BusyUART3());
-            putsUART3((unsigned int*)" m, Speed ");
-            uint8ToUSB(LOCUS_speed);
-            while(BusyUART3());
-            putsUART3((unsigned int*)" m/s, Status ");
-            if (LOCUS_status) {
-              while(BusyUART3());
-              putsUART3((unsigned int*)"LOGGING, ");
-            }
-            else {
-              while(BusyUART3());
-              putsUART3((unsigned int*)"OFF, ");
-            }
-            uint8ToUSB(LOCUS_records);
-            while(BusyUART3());
-            putsUART3((unsigned int*)" Records, ");
-          //  uint16ToUSB(LOCUS_percent);
-          //  while(BusyUART3());
-          //  putsUART3((unsigned int*)"% Used ");
-        }*/
+        // Print out logger info
+//        displayLOCUSInfo();
+        
     }
 
     // Disable Interrupts and close UART
@@ -250,8 +191,8 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
     if (c) {
 
         // Write character out to USB when ready
-        //while(BusyUART3());
-        //WriteUART3((unsigned int)c);
+        while(BusyUART3());
+        WriteUART3((unsigned int)c);
 
         // Clear out any garbage characters
         while(DataRdyUART2())
@@ -260,6 +201,6 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
     }
 
     // Print out GPS info
-    displayGPSInfo();
+//    displayGPSInfo();
     
 }
