@@ -14,6 +14,7 @@
 // Prototypes
 void usbSetup(void);
 void gpsSetup(void);
+void gsmSetup(void);
 
 // Global variables (located in gps.c)
 extern uint8_t hour, minute, seconds, year, month, day;
@@ -28,6 +29,8 @@ extern uint16_t LOCUS_serial, LOCUS_records;
 extern uint8_t LOCUS_type, LOCUS_mode, LOCUS_config, LOCUS_interval, LOCUS_distance, LOCUS_speed, LOCUS_status, LOCUS_percent;
 
 extern boolean paused;
+
+unsigned char incoming_char=0;   // Will hold the incoming character from the Serial Port.
 
 // Configuration Settings
 
@@ -51,39 +54,58 @@ int main(void)
     LATB = 0x0000;
     LATD = 0x0000;
     LATF = 0x0000;
+    LATG = 0x0000;
 
-    // Disable analog I/O on PORT B
+    // Disable analog I/O on PORT B and G
     ANSB = 0x0000;
+    ANSG = 0x0000;
 
     // Setup the GPS and USB UART
     usbSetup();
     gpsSetup();
+    gsmSetup();
     
     // Clear and enable GPS interrupt
-    U2RX_Clear_Intr_Status_Bit;
-    EnableIntU2RX;
+//    U2RX_Clear_Intr_Status_Bit;
+//    EnableIntU2RX;
 
     // Set up to echo GPS data
-    sendCommand(PMTK_SET_BAUD_9600);
-    DELAY_MS(100);
-    sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+//    sendCommand(PMTK_SET_BAUD_9600);
+//    DELAY_MS(100);
+//    sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
 //    sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);    // Enable for log dump
-    DELAY_MS(100);
-    sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);      // Disable for log dump
-    DELAY_MS(100);
+//    DELAY_MS(100);
+//    sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);      // Disable for log dump
+//    DELAY_MS(100);
 
     // Start GPS data logger
 //    startLOCUS();
 
+    strToUSB("Starting SM5100B Communication...\n");
+
     // Loop Forever
     while(1)
     {
-        blink(LED_GRN_P42);
-        DELAY_MS(1000);
+//        blink(LED_GRN_P42);
+//        DELAY_MS(1000);
 
         // Print out logger info
-        displayLOCUSInfo();
-        
+//        displayLOCUSInfo();
+
+        // If a character comes in from the GSM module...
+        if(DataRdyUART1())
+        {
+            incoming_char = ReadUART1();    // Get the character from the GSM UART
+            while(BusyUART3());
+            WriteUART3(incoming_char);      // Print the incoming character to USB UART
+        }
+        // If a character is coming from USB...
+        if(DataRdyUART3())
+        {
+            incoming_char = ReadUART3();    // Get the character coming from USB UART
+            while(BusyUART1());
+            WriteUART1(incoming_char);      // Send the character to the GSM UART
+        }
     }
 
     // Disable Interrupts and close UART
@@ -164,6 +186,33 @@ void gpsSetup(void)
     /* Initalize the Adafruit GPS libraries */
     common_init();
 
+}
+
+// Set up the UART for the GSM chip
+void gsmSetup(void)
+{
+    // Configure Port Direction
+    TRISGbits.TRISG6 = 0;   //  Turn RG6 into output for GSM TX
+    TRISGbits.TRISG7 = 1;   //  Turn RG7 into input for GSM RX
+
+    // Configure PPS pins for GSM
+    iPPSInput(IN_FN_PPS_U1RX,IN_PIN_PPS_RP26);       // Assign U1RX to pin RP26
+    iPPSOutput(OUT_PIN_PPS_RP21,OUT_FN_PPS_U1TX);   // Assign U1TX to pin RP21
+
+    // Close UART in case it's already open
+    CloseUART1();
+
+    // Enable UART Interface
+
+    ConfigIntUART1(UART_RX_INT_DIS | UART_TX_INT_DIS);
+    // Receive interrupt disabled
+    // Transmit interrupt disabled
+
+    OpenUART1(UART_EN, UART_TX_ENABLE, 25);
+    // Module enable
+    // BRG generates 4 clocks per bit period
+    // Transmit enable
+    // 9600 baud rate (@ 4 MHz FCY)
 }
 
 // UART2 RX ISR

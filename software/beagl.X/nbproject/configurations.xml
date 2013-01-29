@@ -19,6 +19,7 @@
       <itemPath>gps.c</itemPath>
       <itemPath>usb.c</itemPath>
       <itemPath>beagl.c</itemPath>
+      <itemPath>cell.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
