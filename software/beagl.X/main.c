@@ -37,7 +37,7 @@ unsigned char incoming_char=0;   // Will hold the incoming character from the Se
 _CONFIG1 (JTAGEN_OFF & ICS_PGx1 & FWDTEN_OFF & GWRP_OFF & GCP_OFF)
 // JTAG disabled
 // Communication Channel: PGC1/EMUC1 and PGD1/EMUD1
-// Watchdog TimeFWDTEN_OFFr disabled
+// Watchdog Timer disabled
 // Writes to program memory are allowed
 // Code protection is disabled
 
@@ -64,6 +64,12 @@ int main(void)
     usbSetup();
     gpsSetup();
     gsmSetup();
+
+    // Clear and enable GSM and USB interrupts
+    U1RX_Clear_Intr_Status_Bit;
+    U3RX_Clear_Intr_Status_Bit;
+    EnableIntU1RX;
+    EnableIntU3RX;
     
     // Clear and enable GPS interrupt
 //    U2RX_Clear_Intr_Status_Bit;
@@ -86,31 +92,21 @@ int main(void)
     // Loop Forever
     while(1)
     {
-//        blink(LED_GRN_P42);
-//        DELAY_MS(1000);
+        blink(LED_GRN_P42);
+        DELAY_MS(1000);
 
         // Print out logger info
 //        displayLOCUSInfo();
 
-        // If a character comes in from the GSM module...
-        if(DataRdyUART1())
-        {
-            incoming_char = ReadUART1();    // Get the character from the GSM UART
-            while(BusyUART3());
-            WriteUART3(incoming_char);      // Print the incoming character to USB UART
-        }
-        // If a character is coming from USB...
-        if(DataRdyUART3())
-        {
-            incoming_char = ReadUART3();    // Get the character coming from USB UART
-            while(BusyUART1());
-            WriteUART1(incoming_char);      // Send the character to the GSM UART
-        }
     }
 
     // Disable Interrupts and close UART
+    DisableIntU1RX;
     DisableIntU2RX;
+    DisableIntU3RX;
+    CloseUART1();
     CloseUART2();
+    CloseUART3();
     
 }
 
@@ -138,11 +134,11 @@ void usbSetup(void)
 
     // Enable UART Interface
 
-    ConfigIntUART3(UART_RX_INT_DIS | UART_TX_INT_DIS);
+    ConfigIntUART3(UART_RX_INT_DIS | UART_RX_INT_PR5 | UART_TX_INT_DIS | UART_TX_INT_PR5);
     // Receive interrupt disabled
     // Transmit interrupt disabled
 
-    OpenUART3(UART_EN | UART_UEN_10 | UART_EVEN_PAR_8BIT, UART_TX_ENABLE, 25);
+    OpenUART3(UART_EN | UART_UEN_10, UART_TX_ENABLE, 25);
     // Module enable
     // UxTX, UxRX, UxCTS and UxRTS pins are enabled and used
     // BRG generates 4 clocks per bit period
@@ -204,7 +200,7 @@ void gsmSetup(void)
 
     // Enable UART Interface
 
-    ConfigIntUART1(UART_RX_INT_DIS | UART_TX_INT_DIS);
+    ConfigIntUART1(UART_RX_INT_DIS | UART_RX_INT_PR7 | UART_TX_INT_DIS | UART_TX_INT_PR7);
     // Receive interrupt disabled
     // Transmit interrupt disabled
 
@@ -215,12 +211,42 @@ void gsmSetup(void)
     // 9600 baud rate (@ 4 MHz FCY)
 }
 
+// UART1 RX ISR
+void __attribute__ ((interrupt,no_auto_psv)) _U1RXInterrupt(void)
+{
+    char c;
+    
+    // Clear the interrupt status of UART1 RX
+    U1RX_Clear_Intr_Status_Bit;
+
+    // Get the character from the GSM UART
+    c = gsmRead();
+
+    // If a character comes in from the GSM module...
+    if (c)
+    {    
+        while(BusyUART3());
+        WriteUART3((unsigned int)c);      // Print the incoming character to USB UART
+
+        // Clear out any garbage characters
+        while(DataRdyUART1())
+            ReadUART1();
+    }
+
+    // Detect if GSM antenna is ready
+    //ms: ADD PARSER
+    if(newSINDreceived() && gsmReady()) {
+        strToUSB("\nWOO, READY!\n");
+        gsmCall();  //ms: ADD NUMBER
+    }
+}
+
 // UART2 RX ISR
 void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
 {
     char c;
 
-    // Clear the interrupt status of UART3 RX
+    // Clear the interrupt status of UART2 RX
     U2RX_Clear_Intr_Status_Bit;
 
     // Wait for data to become available
@@ -248,4 +274,20 @@ void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
     // Print out GPS info
 //    displayGPSInfo();
     
+}
+
+// UART3 RX ISR
+void __attribute__ ((interrupt,no_auto_psv)) _U3RXInterrupt(void)
+{
+    // Clear the interrupt status of UART1 RX
+    U3RX_Clear_Intr_Status_Bit;
+    
+    if(DataRdyUART3())
+    {
+        incoming_char = ReadUART3();    // Get the character coming from USB UART
+        while(BusyUART1());
+        WriteUART1(incoming_char);      // Send the character to the GSM UART
+        while(BusyUART3());
+        WriteUART3(incoming_char);      // Send the character to the USB UART
+    }
 }

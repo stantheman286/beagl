@@ -45,11 +45,11 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/gps.o ${OBJECTDIR}/usb.o ${OBJECTDIR}/beagl.o ${OBJECTDIR}/cell.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/gps.o.d ${OBJECTDIR}/usb.o.d ${OBJECTDIR}/beagl.o.d ${OBJECTDIR}/cell.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/gps.o ${OBJECTDIR}/usb.o ${OBJECTDIR}/beagl.o ${OBJECTDIR}/gsm.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/gps.o.d ${OBJECTDIR}/usb.o.d ${OBJECTDIR}/beagl.o.d ${OBJECTDIR}/gsm.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/gps.o ${OBJECTDIR}/usb.o ${OBJECTDIR}/beagl.o ${OBJECTDIR}/cell.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/gps.o ${OBJECTDIR}/usb.o ${OBJECTDIR}/beagl.o ${OBJECTDIR}/gsm.o
 
 
 CFLAGS=
@@ -97,11 +97,11 @@ ${OBJECTDIR}/beagl.o: beagl.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  beagl.c  -o ${OBJECTDIR}/beagl.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/beagl.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/beagl.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
-${OBJECTDIR}/cell.o: cell.c  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/gsm.o: gsm.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
-	@${RM} ${OBJECTDIR}/cell.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  cell.c  -o ${OBJECTDIR}/cell.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/cell.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
-	@${FIXDEPS} "${OBJECTDIR}/cell.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	@${RM} ${OBJECTDIR}/gsm.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm.c  -o ${OBJECTDIR}/gsm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/gsm.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
@@ -128,11 +128,11 @@ ${OBJECTDIR}/beagl.o: beagl.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  beagl.c  -o ${OBJECTDIR}/beagl.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/beagl.o.d"        -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/beagl.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
-${OBJECTDIR}/cell.o: cell.c  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/gsm.o: gsm.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
-	@${RM} ${OBJECTDIR}/cell.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  cell.c  -o ${OBJECTDIR}/cell.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/cell.o.d"        -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
-	@${FIXDEPS} "${OBJECTDIR}/cell.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	@${RM} ${OBJECTDIR}/gsm.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm.c  -o ${OBJECTDIR}/gsm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm.o.d"        -omf=elf -O0 -I"/opt/microchip/xc16/v1.10/include" -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/gsm.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

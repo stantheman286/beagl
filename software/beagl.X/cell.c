@@ -1,4 +1,0 @@
-// Libraries
-#include "beagl.h"
-
-

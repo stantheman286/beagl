@@ -21,6 +21,7 @@
 #include <libpic30.h>
 #include <uart.h>
 #include <PPS.h>
+#include "gsm.h"
 #include "gps.h"
 #include "usb.h"
 
