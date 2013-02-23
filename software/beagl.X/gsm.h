@@ -12,11 +12,12 @@
 #define true 1
 
 char gsmRead(void);
-void gsmSendCommand(char *str);
+void gsmSendCommand(char *);
 int newSINDreceived(void);
 char *lastSIND(void);
 int gsmReady(void);
-void gsmCall(void);
+void gsmCall(char *);
+void gsmText(char *, char *);
 
 #endif	/* GSM_H */
 

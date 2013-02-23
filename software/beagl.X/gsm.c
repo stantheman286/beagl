@@ -58,6 +58,8 @@ char gsmRead(void) {
 void gsmSendCommand(char *str) {
     while(BusyUART1());
     putsUART1((unsigned int*)str);
+    while(BusyUART3());
+    putsUART3((unsigned int*)str);
 }
 
 /* Detect when a new SIND sentence is detected */
@@ -79,6 +81,62 @@ int gsmReady(void) {
 }
 
 /* Calls a phone number */
-void gsmCall(void) {
-  gsmSendCommand("ATD2066397758");
+void gsmCall(char *number) {
+
+    /* Store the beginning and ending sequences */
+    char *prefix = "ATD";
+    char *suffix = "\r\n";
+
+    /* Allocate space and then store concatenated call command */
+    size_t len1 = strlen(prefix);
+    size_t len2 = strlen(number);
+    size_t len3 = strlen(suffix);
+
+    char *s = malloc(len1 + len2 + len3 + 1);
+    memcpy(s, prefix, len1);
+    memcpy(s + len1, number, len2);
+    memcpy(s + len1 + len2, suffix, len3 + 1);
+
+    /* Send call */
+    gsmSendCommand(s);
+
+    /* Free memory */
+    free(s);
+}
+
+/* Text a phone number */
+void gsmText(char *number, char *msg) {
+
+    /* Store the beginning and ending sequences */
+    char *prefix = "AT+CMGS=\"";
+    char *suffix = "\"\r\n";
+
+    /* Allocate space and then store concatenated text command */
+    size_t len1 = strlen(prefix);
+    size_t len2 = strlen(number);
+    size_t len3 = strlen(suffix);
+
+    char *s = malloc(len1 + len2 + len3 + 1);
+    memcpy(s, prefix, len1);
+    memcpy(s + len1, number, len2);
+    memcpy(s + len1 + len2, suffix, len3 + 1);
+
+    /* Set GSM module to text mode */
+    gsmSendCommand("AT+CMGF=1\r");
+
+    /* Set the number */
+    gsmSendCommand(s);
+
+    /* Delay to allow GSM module to get ready */
+    DELAY_MS(100);
+    
+    /* Set the message */
+    gsmSendCommand(msg);
+
+    /* Send Text */
+    while(BusyUART1());
+    WriteUART1((unsigned int)CTRL_Z);
+
+    /* Free memory */
+    free(s);
 }

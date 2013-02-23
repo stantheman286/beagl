@@ -40,6 +40,9 @@
 #define LED_BLU_P49 0x0002
 #define LED_RED_P50 0x0004
 
+#define HOME_NUMBER "2066397758"
+#define CTRL_Z 26
+
 // Prototypes
 void blink(unsigned int LED);
 

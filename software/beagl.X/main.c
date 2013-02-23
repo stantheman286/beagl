@@ -234,12 +234,13 @@ void __attribute__ ((interrupt,no_auto_psv)) _U1RXInterrupt(void)
     }
 
     // Detect if GSM antenna is ready
-    //ms: ADD PARSER
     if(newSINDreceived() && gsmReady()) {
-        strToUSB("\nWOO, READY!\n");
-        gsmCall();  //ms: ADD NUMBER
+//        gsmCall(HOME_NUMBER);
+        gsmText(HOME_NUMBER, "Hey Matt, hows it hanging?!");
     }
 }
+
+//MS: ADD PARSER
 
 // UART2 RX ISR
 void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)
