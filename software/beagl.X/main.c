@@ -15,6 +15,7 @@
 void usbSetup(void);
 void gpsSetup(void);
 void gsmSetup(void);
+void sdSetup(void);
 
 // Global variables (located in gps.c)
 extern uint8_t hour, minute, seconds, year, month, day;
@@ -64,6 +65,7 @@ int main(void)
     usbSetup();
     gpsSetup();
     gsmSetup();
+    sdSetup();
 
     // Clear and enable GSM and USB interrupts
     U1RX_Clear_Intr_Status_Bit;
@@ -119,8 +121,8 @@ void usbSetup(void)
     TRISDbits.TRISD9 = 0;   //  Turn RD9 into output for USB RTS#
     TRISDbits.TRISD8 = 0;   //  Turn RD8 into output for LED
     TRISDbits.TRISD6 = 0;   //  Turn RD6 into output for LED
-    TRISDbits.TRISD2 = 0;   //  Turn RD2 into output for LED
-    TRISDbits.TRISD1 = 0;   //  Turn RD2 into output for LED
+//    TRISDbits.TRISD2 = 0;   //  Turn RD2 into output for LED
+//    TRISDbits.TRISD1 = 0;   //  Turn RD1 into output for LED
     TRISDbits.TRISD0 = 1;   //  Turn RD0 into input for USB CTS#
 
     // Configure PPS pins for USB
@@ -211,6 +213,39 @@ void gsmSetup(void)
     // 9600 baud rate (@ 4 MHz FCY)
 }
 
+// Set up the SPI for the MicroSD card
+void sdSetup(void)
+{
+    // Configure Port Direction
+    TRISDbits.TRISD5 = 0;   //  Turn RD5 into output for SCLK
+    TRISDbits.TRISD4 = 1;   //  Turn RD4 into input for MISO
+    TRISDbits.TRISD3 = 0;   //  Turn RD3 into output for MOSI
+    TRISDbits.TRISD2 = 0;   //  Turn RD2 into output for SS
+    TRISDbits.TRISD1 = 1;   //  Turn RD1 into input for CD (card detect)
+
+    // Configure PPS pins for MicroSD
+    iPPSInput(IN_FN_PPS_SDI1,IN_PIN_PPS_RP25);          // Assign SDI1 to pin RP25
+    iPPSOutput(OUT_PIN_PPS_RP20,OUT_FN_PPS_SCK1OUT);    // Assign SCK1OUT to pin RP20
+    iPPSOutput(OUT_PIN_PPS_RP22,OUT_FN_PPS_SDO1);       // Assign SDO1 to pin RP22
+    iPPSOutput(OUT_PIN_PPS_RP23,OUT_FN_PPS_SS1OUT);     // Assign SS1OUT to pin RP23
+
+    // Close SPI in case it's already open
+    CloseSPI1();
+    
+    // Enable SPI interface
+
+    // Clear and disable SPI interupts for now
+    SPI1_Clear_Intr_Status_Bit;
+    DisableIntSPI1;
+
+    ConfigIntSPI1(SPI_INT_DIS);
+    // Interrupts disabled
+    
+    OpenSPI1(0x0000, MASTER_ENABLE_ON, SPI_ENABLE);
+    // Master Mode
+    // SPI enabled
+}
+
 // UART1 RX ISR
 void __attribute__ ((interrupt,no_auto_psv)) _U1RXInterrupt(void)
 {
@@ -236,11 +271,11 @@ void __attribute__ ((interrupt,no_auto_psv)) _U1RXInterrupt(void)
     // Detect if GSM antenna is ready
     if(newSINDreceived() && gsmReady()) {
 //        gsmCall(HOME_NUMBER);
-        gsmText(HOME_NUMBER, "Hey Matt, hows it hanging?!");
+//        gsmText(HOME_NUMBER, "Hey Matt!");
+//
+//MS: add parser
     }
 }
-
-//MS: ADD PARSER
 
 // UART2 RX ISR
 void __attribute__ ((interrupt,no_auto_psv)) _U2RXInterrupt(void)

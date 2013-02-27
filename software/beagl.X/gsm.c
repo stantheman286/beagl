@@ -53,7 +53,6 @@ char gsmRead(void) {
 
 }
 
-
 /* Send command to GSM via UART */
 void gsmSendCommand(char *str) {
     while(BusyUART1());

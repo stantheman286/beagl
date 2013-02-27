@@ -20,6 +20,7 @@
 #include <xc.h>
 #include <libpic30.h>
 #include <uart.h>
+#include <spi.h>
 #include <PPS.h>
 #include "gsm.h"
 #include "gps.h"
@@ -37,8 +38,8 @@
 #define DELAY_US(us)  __delay32(CYCLES_PER_US * ((unsigned long) us));  // delay some number of microseconds
 
 #define LED_GRN_P42 0x0100
-#define LED_BLU_P49 0x0002
-#define LED_RED_P50 0x0004
+//#define LED_BLU_P49 0x0002
+//#define LED_RED_P50 0x0004
 
 #define HOME_NUMBER "2066397758"
 #define CTRL_Z 26
